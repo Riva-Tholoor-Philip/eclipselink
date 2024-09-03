@@ -112,6 +112,7 @@ public class JUnitJPQLJakartaDataNoAliasTest extends JUnitTestCase {
         suite.addTest(new JUnitJPQLJakartaDataNoAliasTest("testDeleteQueryLengthInExpressionOnRight"));
         suite.addTest(new JUnitJPQLJakartaDataNoAliasTest("tesUpdateQueryWithThisVariable"));
         suite.addTest(new JUnitJPQLJakartaDataNoAliasTest("testThisVariableInPathExpressionUpdate"));
+        suite.addTest(new JUnitJPQLJakartaDataNoAliasTest("testThisVariableInPathAndIdFunctionExpressionUpdate"));
         suite.addTest(new JUnitJPQLJakartaDataNoAliasTest("testThisVariableInPathExpressionDelete"));
         suite.addTest(new JUnitJPQLJakartaDataNoAliasTest("testThisVariableInLikeExpressionDelete"));
         return suite;
@@ -379,6 +380,18 @@ public class JUnitJPQLJakartaDataNoAliasTest extends JUnitTestCase {
         resetRooms();
         int numberOfChanges = getEntityManagerFactory().callInTransaction(em -> em.createQuery(
                 "UPDATE Room SET this.length = 10 WHERE this.id = 1").executeUpdate());
+        assertTrue("Number of rooms with ID = 1 modified is " + numberOfChanges, numberOfChanges == 1);
+        int length = findRoomById(1).getLength();
+        assertTrue("Length of room with ID = 1 is " + length, length == 10);
+    }
+
+    // Covers https://github.com/eclipse-ee4j/eclipselink/issues/2184
+    public void testThisVariableInPathAndIdFunctionExpressionUpdate() {
+        resetRooms();
+        int numberOfChanges = getEntityManagerFactory().callInTransaction(em -> em.createQuery(
+                "UPDATE Room SET length = 10 WHERE ID(this) = :idParam")
+                .setParameter("idParam", 1)
+                .executeUpdate());
         assertTrue("Number of rooms with ID = 1 modified is " + numberOfChanges, numberOfChanges == 1);
         int length = findRoomById(1).getLength();
         assertTrue("Length of room with ID = 1 is " + length, length == 10);

@@ -17,6 +17,7 @@
 package org.eclipse.persistence.jpa.tests.jpql.parser;
 
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.equal;
+import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.id;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.from;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.numeric;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.path;
@@ -177,11 +178,32 @@ public final class JPQLExpressionTestJakartaData extends JPQLParserTest {
 
         UpdateStatementTester selectStatement = updateStatement(
                 update(
-                        "Order",
-                         set(path("{order}.length"),
-                                virtualVariable("order", "length")
+                        "Order", "this",
+                         set(path("{this}.length"),
+                                virtualVariable("this", "length")
                                         .add(numeric(1))
-                        ))
+                        ), false)
+        );
+
+        testJakartaDataQuery(inputJPQLQuery, selectStatement);
+    }
+
+    @Test
+    public void testUpdateFunctionNameAsImplicitStateFieldInIdFunction() {
+
+        String inputJPQLQuery = "UPDATE Order SET length = length + 1 WHERE ID(this) = 1";
+
+        UpdateStatementTester selectStatement = updateStatement(
+                update(
+                        "Order", "this",
+                        set(path("{this}.length"),
+                                virtualVariable("this", "length")
+                                        .add(numeric(1))
+                        ), false),
+                where(equal(
+                        id(virtualVariable("this", "this")),
+                        numeric(1)
+                ))
         );
 
         testJakartaDataQuery(inputJPQLQuery, selectStatement);
