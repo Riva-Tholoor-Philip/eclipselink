@@ -973,7 +973,7 @@ public abstract class AbstractValidator extends AnonymousExpressionVisitor {
         public void visit(StateFieldPathExpression expression) {
             JPQLQueryBNF originQueryBNF = queryBNF;
             if (Expression.THIS.equalsIgnoreCase(expression.toString()) &&
-                    expression.getParentExpression().isGenerateThisPrefix() &&
+                    expression.getParentExpression().isGenerateImplicitThisAlias() &&
                     expression.getIdentificationVariable() != null &&
                     ((IdentificationVariable)(expression.getIdentificationVariable())).isVirtual()) {
                 queryBNF = expression.getQueryBNF();

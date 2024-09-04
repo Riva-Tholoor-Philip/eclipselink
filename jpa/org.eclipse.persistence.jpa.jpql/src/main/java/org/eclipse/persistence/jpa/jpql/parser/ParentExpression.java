@@ -19,9 +19,9 @@ public interface ParentExpression extends Expression {
     /**
      * Whether should automatically add missing "this" prefix into where field variables if it doesn't exist.
      */
-    boolean isGenerateThisPrefix();
+    boolean isGenerateImplicitThisAlias();
 
-    void setGenerateThisPrefix(boolean generateThisPrefix);
+    void setGenerateImplicitThisAlias(boolean generateImplicitThisAlias);
 
     boolean isParentExpression();
 }

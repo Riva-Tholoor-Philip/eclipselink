@@ -16,9 +16,14 @@
 //
 package org.eclipse.persistence.jpa.tests.jpql.parser;
 
+import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.and;
+import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.avg;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.equal;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.id;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.from;
+import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.inputParameter;
+import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.isNotNull;
+import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.max;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.numeric;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.path;
 import static org.eclipse.persistence.jpa.tests.jpql.parser.JPQLParserTester.select;
@@ -166,6 +171,37 @@ public final class JPQLExpressionTestJakartaData extends JPQLParserTest {
                         virtualVariable("this", "id"),
                         virtualVariable("this", "length").add(numeric(1))
                 ))
+        );
+
+        testJakartaDataQuery(inputJPQLQuery, selectStatement);
+    }
+
+    @Test
+    public void testFunctionNameAsImplicitStateFieldInSelectWhereExpression() {
+
+        String inputJPQLQuery = "SELECT name FROM Order WHERE name IS NOT NULL AND id = :idParam";
+
+        SelectStatementTester selectStatement = selectStatement(
+                select(virtualVariable("this", "name")),
+                from("Order", "{this}"),
+                where(and(isNotNull(virtualVariable("this", "name")),
+                        equal(virtualVariable("this", "id"),
+                                inputParameter(":idParam"))
+                ))
+        );
+
+        testJakartaDataQuery(inputJPQLQuery, selectStatement);
+    }
+
+    @Test
+    public void testFunctionNameAsImplicitStateFieldInSelectAggregateMaxExpression() {
+
+        String inputJPQLQuery = "SELECT MAX(price) FROM Item WHERE AVG(price) = 100";
+
+        SelectStatementTester selectStatement = selectStatement(
+                select(max(virtualVariable("this", "price"))),
+                from("Item", "{this}"),
+                where(equal(avg(virtualVariable("this", "price")), numeric(100)))
         );
 
         testJakartaDataQuery(inputJPQLQuery, selectStatement);

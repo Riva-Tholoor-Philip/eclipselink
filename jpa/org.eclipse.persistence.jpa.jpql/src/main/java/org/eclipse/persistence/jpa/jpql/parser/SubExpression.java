@@ -48,13 +48,13 @@ public final class SubExpression extends AbstractSingleEncapsulatedExpression im
     }
 
     @Override
-    public boolean isGenerateThisPrefix() {
+    public boolean isGenerateImplicitThisAlias() {
         return generateThisPrefix;
     }
 
     @Override
-    public void setGenerateThisPrefix(boolean generateThisPrefix) {
-        this.generateThisPrefix = generateThisPrefix;
+    public void setGenerateImplicitThisAlias(boolean generateImplicitThisAlias) {
+        this.generateThisPrefix = generateImplicitThisAlias;
     }
 
     @Override

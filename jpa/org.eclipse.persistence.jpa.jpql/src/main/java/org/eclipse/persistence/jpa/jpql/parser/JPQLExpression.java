@@ -16,8 +16,12 @@
 //
 package org.eclipse.persistence.jpa.jpql.parser;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
 import org.eclipse.persistence.jpa.jpql.ExpressionTools;
 import org.eclipse.persistence.jpa.jpql.JPAVersion;
 import org.eclipse.persistence.jpa.jpql.WordParser;
@@ -89,7 +93,7 @@ public final class JPQLExpression extends AbstractExpression implements ParentEx
      */
     private boolean jakartaData = false;
 
-    private boolean generateThisPrefix = false;
+    private boolean generateImplicitThisAlias = false;
 
     /**
      * Creates a new <code>JPQLExpression</code>, which is the root of the JPQL parsed tree.
@@ -161,6 +165,7 @@ public final class JPQLExpression extends AbstractExpression implements ParentEx
         if (jakartaData) {
             jpqlFragment = preParse(jpqlFragment);
         }
+        generateImplicitThisAlias = generateImplicitThisAliasDetection((String) jpqlFragment);
         parse(new WordParser(jpqlFragment), tolerant);
     }
 
@@ -257,13 +262,13 @@ public final class JPQLExpression extends AbstractExpression implements ParentEx
     }
 
     @Override
-    public boolean isGenerateThisPrefix() {
-        return generateThisPrefix;
+    public boolean isGenerateImplicitThisAlias() {
+        return generateImplicitThisAlias;
     }
 
     @Override
-    public void setGenerateThisPrefix(boolean generateThisPrefix) {
-        this.generateThisPrefix = generateThisPrefix;
+    public void setGenerateImplicitThisAlias(boolean generateImplicitThisAlias) {
+        this.generateImplicitThisAlias = generateImplicitThisAlias;
     }
 
     @Override
@@ -430,5 +435,27 @@ public final class JPQLExpression extends AbstractExpression implements ParentEx
             return Expression.SELECT + " " + Expression.THIS + " " + jpqlFragment;
         }
         return jpqlFragment;
+    }
+
+    //Quick pre-check if 'this' entity alias should be generated automatically
+    //There are some additional checks later during parsing query
+    private boolean generateImplicitThisAliasDetection(String jpqlFragment) {
+        String jpqlFragmentLowerCase = jpqlFragment.toLowerCase(Locale.ROOT);
+        String fromLowerCase = Expression.FROM.toLowerCase(Locale.ROOT);
+        int count = 0;
+        int fromIndex = jpqlFragmentLowerCase.indexOf(fromLowerCase);
+        int formOccurrences = Collections.frequency(Arrays.asList(jpqlFragmentLowerCase.split(" ")), fromLowerCase);
+        if (fromIndex >= 1 && formOccurrences == 1) {
+            String jpqlFragmentFrom = jpqlFragment.substring(fromIndex);
+            WordParser wordParser = new WordParser(jpqlFragmentFrom);
+            wordParser.moveForwardIgnoreWhitespace(Expression.FROM);
+            wordParser.skipLeadingWhitespace();
+            while (!wordParser.word().equalsIgnoreCase(Expression.WHERE.toLowerCase(Locale.ROOT)) && !wordParser.word().isEmpty()) {
+                count++;
+                wordParser.moveForwardIgnoreWhitespace(wordParser.word());
+                wordParser.skipLeadingWhitespace();
+            }
+        }
+        return count == 1;
     }
 }
